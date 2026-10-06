@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Iris Flower Prediction</title>
+
+    <style>
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background: #f4f7fb;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .container {
+            width: 450px;
+            background: white;
+            padding: 35px;
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+
+        h1 {
+            text-align: center;
+            color: #1e3a8a;
+            margin-bottom: 8px;
+        }
+
+        .description {
+            text-align: center;
+            color: #666;
+            margin-bottom: 25px;
+        }
+
+        .input-group {
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 6px;
+            font-weight: bold;
+            color: #333;
+        }
+
+        input {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            font-size: 16px;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: #2563eb;
+        }
+
+        button {
+            width: 100%;
+            padding: 13px;
+            margin-top: 10px;
+            border: none;
+            border-radius: 8px;
+            background: #2563eb;
+            color: white;
+            font-size: 17px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background: #1d4ed8;
+        }
+
+        #result {
+            display: none;
+            margin-top: 25px;
+            padding: 20px;
+            background: #eff6ff;
+            border-radius: 10px;
+            text-align: center;
+        }
+
+        #prediction {
+            font-size: 25px;
+            font-weight: bold;
+            color: #1e40af;
+            margin-bottom: 8px;
+        }
+
+        #confidence {
+            color: #555;
+            font-size: 16px;
+        }
+
+        #error {
+            color: red;
+            text-align: center;
+            margin-top: 15px;
+        }
+
+    </style>
+
+</head>
+
+<body>
+
+<div class="container">
+
+    <h1>🌸 Iris Flower Predictor</h1>
+
+    <p class="description">
+        Machine Learning Classification System
+    </p>
+
+    <div class="input-group">
+        <label>Sepal Length (cm)</label>
+        <input type="number" id="sepal_length" step="0.1" placeholder="Example: 5.1">
+    </div>
+
+    <div class="input-group">
+        <label>Sepal Width (cm)</label>
+        <input type="number" id="sepal_width" step="0.1" placeholder="Example: 3.5">
+    </div>
+
+    <div class="input-group">
+        <label>Petal Length (cm)</label>
+        <input type="number" id="petal_length" step="0.1" placeholder="Example: 1.4">
+    </div>
+
+    <div class="input-group">
+        <label>Petal Width (cm)</label>
+        <input type="number" id="petal_width" step="0.1" placeholder="Example: 0.2">
+    </div>
+
+    <button onclick="predictFlower()">
+        Predict Flower
+    </button>
+
+    <div id="error"></div>
+
+    <div id="result">
+
+        <div id="prediction"></div>
+
+        <div id="confidence"></div>
+
+    </div>
+
+</div>
+
+
+<script>
+
+async function predictFlower() {
+
+    const sepal_length =
+        parseFloat(document.getElementById("sepal_length").value);
+
+    const sepal_width =
+        parseFloat(document.getElementById("sepal_width").value);
+
+    const petal_length =
+        parseFloat(document.getElementById("petal_length").value);
+
+    const petal_width =
+        parseFloat(document.getElementById("petal_width").value);
+
+    const result = document.getElementById("result");
+    const error = document.getElementById("error");
+
+    error.innerHTML = "";
+
+    if (
+        isNaN(sepal_length) ||
+        isNaN(sepal_width) ||
+        isNaN(petal_length) ||
+        isNaN(petal_width)
+    ) {
+
+        result.style.display = "none";
+
+        error.innerHTML = "Please enter all four values.";
+
+        return;
+    }
+
+    try {
+
+        const response = await fetch(
+            "http://127.0.0.1:8000/predict",
+            {
+                method: "POST",
+
+                headers: {
+                    "Content-Type": "application/json"
+                },
+
+                body: JSON.stringify({
+
+                    sepal_length: sepal_length,
+                    sepal_width: sepal_width,
+                    petal_length: petal_length,
+                    petal_width: petal_width
+
+                })
+            }
+        );
+
+        if (!response.ok) {
+
+            throw new Error("Prediction request failed");
+
+        }
+
+        const data = await response.json();
+
+        document.getElementById("prediction").innerHTML =
+            "🌸 " + data.prediction.toUpperCase();
+
+        document.getElementById("confidence").innerHTML =
+            "Confidence: " + data.confidence + "%";
+
+        result.style.display = "block";
+
+    }
+
+    catch (error) {
+
+        result.style.display = "none";
+
+        error.innerHTML =
+            "Unable to connect to the backend. Make sure FastAPI is running.";
+
+    }
+
+}
+
+</script>
+
+</body>
+
+</html>
